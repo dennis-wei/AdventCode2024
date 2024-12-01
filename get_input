@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source $( dirname "${BASH_SOURCE[0]}" )/.env
+
+python3 $( dirname "${BASH_SOURCE[0]}" )/get_input.py $1
