@@ -4,7 +4,7 @@ day = sys.argv[1]
 elixir_template = f"""
 
 defmodule Day{day} do
-  def get_input(test \\\ false) do
+  def get_input(test \\\\ false) do
     filename = case test do
       false -> "input/{day}.txt"
       true -> "test_input/{day}.txt"
@@ -17,7 +17,7 @@ defmodule Day{day} do
       # .ints_in_lines(filename)
   end
 
-  def solve(test \\\ false) do
+  def solve(test \\\\ false) do
     input = get_input(test)
     part1 = nil
     part2 = nil
