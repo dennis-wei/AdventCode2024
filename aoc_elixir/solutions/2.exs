@@ -13,12 +13,10 @@ defmodule Day2 do
   end
 
   def is_safe(line) do
-    zipped = Enum.zip(line, tl(line))
-    diffs = Enum.map(zipped, fn {n1, n2} -> n2 - n1 end)
-    gap_diffs = Enum.all?(diffs, fn n -> 1 <= abs(n) and abs(n) <= 3 end)
+    diffs = Enum.zip(line, tl(line))
+    |> Enum.map(fn {n1, n2} -> n2 - n1 end)
     is_first_positive = hd(diffs) |> then(fn n -> n > 0 end)
-    inc_diffs = Enum.all?(diffs, fn n -> n > 0 == is_first_positive end)
-    gap_diffs and inc_diffs
+    Enum.all?(diffs, fn n -> 1 <= abs(n) and abs(n) <= 3 and n > 0 == is_first_positive end)
   end
 
   def is_safe2(line) do
@@ -35,10 +33,10 @@ defmodule Day2 do
     input = get_input(test)
 
     part1 = input
-    |> Enum.filter(fn i -> is_safe(i) end)
+    |> Enum.filter(&is_safe/1)
     |> length()
     part2 = input
-    |> Enum.filter(fn i -> is_safe2(i) end)
+    |> Enum.filter(&is_safe2/1)
     |> length()
     IO.puts("Part 1: #{part1}")
     IO.puts("Part 2: #{part2}")
