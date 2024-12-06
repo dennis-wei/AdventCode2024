@@ -44,29 +44,26 @@ defmodule Day5 do
   end
 
   def get_mid(l) do
-    midx = l
+    l
     |> length()
     |> div(2)
-    Enum.at(l, midx)
+    |> then(&Enum.at(l, &1))
   end
 
   def solve(test \\ false) do
     [raw_rules, raw_pages] = get_input(test)
     |> Enum.map(&String.split(&1, "\n"))
-
     rules = raw_rules
     |> Enum.map(&Utils.get_all_nums/1)
-
     pages = raw_pages
     |> Enum.map(&Utils.get_all_nums/1)
 
-    part1 = pages
-    |> Enum.filter(fn p -> is_valid(p, rules) end)
+    {correct, incorrect} = Enum.split_with(pages, &is_valid(&1, rules))
+
+    part1 = correct
     |> Enum.map(&get_mid/1)
     |> Enum.sum()
 
-    incorrect = pages
-    |> Enum.filter(fn p -> !is_valid(p, rules) end)
     part2 = incorrect
     |> Enum.map(fn p -> sort_pages(p, rules) end)
     |> Enum.map(&get_mid/1)

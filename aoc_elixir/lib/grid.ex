@@ -1,10 +1,11 @@
 defmodule Grid do
+  # by default, {column, row} ala graphics
   def to_map(glist, invert \\ false) do
     Map.new(glist, fn ent ->
       {n, r, c} = ent
       cond do
-        invert -> {{c, r}, n}
-        true -> {{r, c}, n}
+        invert -> {{r, c}, n}
+        true -> {{c, r}, n}
       end
     end)
   end
