@@ -68,13 +68,15 @@ defmodule Day6 do
 
     part2 = visited
     |> Enum.filter(fn v_loc -> v_loc != start_location end)
-    |> Enum.filter(fn v_loc ->
+    |> Enum.map(fn v_loc -> Task.async(fn ->
       replaced = Map.put(grid, v_loc, "#")
       case traverse(replaced, start_location) do
         :loop -> true
         {:exit, _} -> false
       end
-    end)
+    end) end)
+    |> Task.await_many(10000)
+    |> Enum.filter(&Function.identity/1)
     |> Enum.count()
     IO.puts("Part 1: #{part1}")
     IO.puts("Part 2: #{part2}")
