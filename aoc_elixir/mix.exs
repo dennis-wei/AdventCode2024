@@ -23,9 +23,8 @@ defmodule AocElixir.Mixfile do
     [
       {:json, "~> 1.4.1"},
       {:libgraph, "~> 0.16.0"},
-      {:comb, git: "https://github.com/tallakt/comb.git", tag: "master"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
+      {:comb, git: "https://github.com/tallakt/comb.git", tag: "master"},
+      {:memoize, "~> 1.4"}
     ]
   end
 end
