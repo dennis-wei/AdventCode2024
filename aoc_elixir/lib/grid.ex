@@ -61,7 +61,17 @@ defmodule Grid do
     end)
   end
 
-  def print_grid(grid, replacements \\ %{}, sep \\ "") do
+  def invert(grid) do
+    Enum.map(grid, fn {{x, y}, v} -> {{y, x}, v} end)
+    |> Map.new()
+  end
+
+  def print_grid(inv_grid, replacements \\ %{}, sep \\ "", invert \\ false) do
+    grid = case invert do
+      true -> inv_grid
+      false -> invert(inv_grid)
+    end
+
     sorted = Enum.sort(Map.to_list(grid), fn ({{r1, c1}, _v1}, {{r2, c2}, _v2}) ->
       cond do
         r1 < r2 -> true
@@ -84,5 +94,6 @@ defmodule Grid do
       end
     end)
     IO.puts(acc)
+    IO.puts("\n")
   end
 end
