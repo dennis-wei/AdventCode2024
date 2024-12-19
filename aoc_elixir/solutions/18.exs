@@ -27,11 +27,11 @@ defmodule Day18 do
     end)
   end
 
-  def path_exists(input, base_grid, grid_size, n) do
+  def get_path(input, base_grid, grid_size, n) do
     slice = Enum.slice(input, 0..n-1)
     grid = Enum.reduce(slice, base_grid, fn [a, b], acc -> Map.put(acc, {a, b}, "#") end)
     graph = make_graph(grid)
-    Graph.dijkstra(graph, {0, 0}, {grid_size-1, grid_size-1}) != nil
+    Graph.dijkstra(graph, {0, 0}, {grid_size-1, grid_size-1})
   end
 
   def bin_search(left, right, test) do
@@ -55,15 +55,12 @@ defmodule Day18 do
       false -> {71, 1024}
     end
 
-    first_1024 = Enum.slice(input, 0..p1_limit-1)
     base_grid = init_grid(grid_size)
-    grid = Enum.reduce(first_1024, base_grid, fn [a, b], acc -> Map.put(acc, {a, b}, "#") end)
-    graph = make_graph(grid)
-    part1 = Graph.dijkstra(graph, {0, 0}, {grid_size-1, grid_size-1})
+    part1 = get_path(input, base_grid, grid_size, 1024)
     |> Enum.count()
     |> then(fn n -> n - 1 end)
 
-    part2 = bin_search(p1_limit+1, length(input), fn n -> path_exists(input, base_grid, grid_size, n) end)
+    part2 = bin_search(p1_limit+1, length(input), fn n -> get_path(input, base_grid, grid_size, n) != nil end)
     |> then(fn n -> Enum.at(input, n) end)
     |> then(fn [a, b] -> "#{a},#{b}" end)
     IO.puts("Part 1: #{part1}")
