@@ -1,9 +1,8 @@
 defmodule Day24 do
-  def get_input(test \\ false, fixed \\ false) do
-    filename = cond do
-      test -> "test_input/24.3.txt"
-      fixed -> "input/24.fixed.txt"
-      true -> "input/24.txt"
+  def get_input(test \\ false) do
+    filename = case test do
+      true -> "test_input/24.3.txt"
+      false -> "input/24.txt"
     end
     Input
       # .ints(filename)
@@ -49,8 +48,14 @@ defmodule Day24 do
     |> Enum.reduce(0, fn n, acc -> 2 * acc + n end)
   end
 
-  def part1(test) do
-    [raw_start_gates, gate_ops] = get_input(test)
+  def get_from_map_prefix(val_map, prefix) do
+    Enum.filter(val_map, fn {k, _v} -> String.starts_with?(k, prefix) end)
+    |> Enum.sort_by(fn {k, _v} -> Utils.get_all_nums(k) |> hd() end)
+    |> Enum.map(&elem(&1, 1))
+    |> to_dec()
+  end
+
+  def part1(raw_start_gates, gate_ops) do
     starting_vals = get_start_vals(raw_start_gates)
     {ograph, _vgraph, ops} = get_gate_graphs(gate_ops)
 
@@ -76,19 +81,37 @@ defmodule Day24 do
       Map.put(acc, gate, val)
     end)
 
-   gate_vals
+   res = gate_vals
     |> Enum.filter(fn {k, _v} -> String.starts_with?(k, "z") end)
     |> Enum.sort()
-    |> Enum.reverse()
-    |> Enum.reduce(0, fn {_k, v}, acc -> acc * 2 + v end)
+    |> Enum.map(&elem(&1, 1))
+    |> to_dec()
+
+    {res, gate_vals}
   end
 
-  def part2(test \\ false, fixed \\ false, write \\ false) do
+  def swap(str, s1, s2) do
+    str
+    |> String.replace("-> #{s1}", "-> tmp")
+    |> String.replace("-> #{s2}", "-> #{s1}")
+    |> String.replace("-> tmp", "-> #{s2}")
+  end
+
+  def swap_ops(initial_gate_ops, swaps) do
+    swaps
+    |> Enum.reduce(initial_gate_ops, fn [o1, o2], acc -> swap(acc, o1, o2) end)
+  end
+
+  def part2(raw_start_gates, init_gate_ops, fixed \\ false, write \\ false) do
+    swaps = Input.line_tokens("out/swaps.txt", ",")
     case fixed do
       false -> IO.puts("===BASE===")
       true -> IO.puts("===FIXED===")
     end
-    [_raw_start_gates, gate_ops] = get_input(test, fixed)
+    gate_ops = case fixed do
+      true -> swap_ops(init_gate_ops, swaps)
+      false -> init_gate_ops
+    end
     {_ograph, vgraph, _ops} = get_gate_graphs(gate_ops)
 
     if write do
@@ -113,6 +136,7 @@ defmodule Day24 do
     Graph.vertices(vgraph)
     |> Enum.filter(fn v -> !is_tuple(v) end)
     |> Enum.filter(fn v -> String.starts_with?(v, "z") end)
+    |> Enum.filter(fn v -> v != "z45" end)
     |> Enum.filter(fn v ->
       in_edge = Graph.in_neighbors(vgraph, v)
       |> hd()
@@ -121,21 +145,6 @@ defmodule Day24 do
         {_, _, _, "AND", _} -> IO.puts("Bad in: #{v}")
         {_, _, _, "OR", _} -> IO.puts("Bad in: #{v}")
         _ -> nil
-      end
-    end)
-
-    # All xin and yin should output to one XOR and one AND
-    Graph.vertices(vgraph)
-    |> Enum.filter(fn v -> !is_tuple(v) end)
-    |> Enum.filter(fn v -> String.starts_with?(v, "y") or String.starts_with?(v, "x") end)
-    |> Enum.filter(fn v ->
-      out_edges = Graph.out_neighbors(vgraph, v)
-
-      cond do
-        Enum.count(out_edges) != 2 -> IO.puts("Bad out: #{v}")
-        !Enum.all?(out_edges, fn e -> is_tuple(e) end) -> IO.puts("Bad out: #{v}")
-        !(Enum.map(out_edges, fn e -> elem(e, 3) end) |> MapSet.new() == MapSet.new(["AND", "XOR"])) -> IO.puts("Bad out: #{v}")
-        true -> nil
       end
     end)
 
@@ -157,15 +166,34 @@ defmodule Day24 do
       end
     end)
 
-    Enum.sort(["REDACTED"])
+    {_, gate_vals} = part1(raw_start_gates, gate_ops)
+    x = get_from_map_prefix(gate_vals, "x")
+    |> IO.inspect(label: :x)
+    y = get_from_map_prefix(gate_vals, "y")
+    |> IO.inspect(label: :y)
+    actual = get_from_map_prefix(gate_vals, "z")
+    IO.puts("  actual: #{actual} | #{Integer.to_string(actual, 2)}")
+
+    expected = x + y
+    IO.puts("expected: #{expected} | #{Integer.to_string(expected, 2)}")
+
+    res = List.flatten(swaps)
+    |> Enum.sort()
     |> Enum.join(",")
 
+    cond do
+      !fixed -> nil
+      actual == expected -> res
+      true -> raise("Incorrect swaps")
+    end
   end
 
   def solve(test, fixed \\ false, write \\ false) do
-    part1 = part1(test)
-    part2 = part2(test, fixed, write)
+    [raw_start_gates, raw_gate_ops] = get_input(test)
+    {part1, _} = part1(raw_start_gates, raw_gate_ops)
+    part2 = part2(raw_start_gates, raw_gate_ops, fixed, write)
 
+    IO.puts("===")
     IO.puts("Part 1: #{part1}")
     IO.puts("Part 2: #{part2}")
   end
